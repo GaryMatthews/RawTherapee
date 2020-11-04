@@ -2462,6 +2462,7 @@ void ImProcFunctions::exlabLocal(local_params& lp, int bfh, int bfw, int bfhr, i
     const bool exec = (lp.expmet == 1 && linear > 0.f && lp.laplacexp > 0.1f);
 
     if(!exec) {//for standard exposure
+    printf("yes\n");
         const float cexp_scale = std::pow(2.f, lp.expcomp);
         const float ccomp = (rtengine::max(0.f, lp.expcomp) + 1.f) * lp.hlcomp / 100.f;
         const float cshoulder = ((maxran / rtengine::max(1.0f, cexp_scale)) * (lp.hlcompthr / 200.f)) + 0.1f;
@@ -3713,6 +3714,14 @@ void ImProcFunctions::retinex_pde(const float * datain, float * dataout, int bfw
     //first call to laplacian with plein strength
     discrete_laplacian_threshold(data_tmp, datain, bfw, bfh, thresh);
 
+    for (int y = 0; y < bfh ; y++) {
+        for (int x = 0; x < bfw; x++) {
+            if (std::isnan(data_tmp[y * bfw + x])) {
+                data_tmp[y * bfw + x] = datain[y * bfw + x];
+            }
+        }
+    }
+
     float *data_fft = (float *) fftwf_malloc(sizeof(float) * bfw * bfh);
     if (!data_fft) {
         fprintf(stderr, "allocation error\n");
@@ -3791,6 +3800,7 @@ void ImProcFunctions::retinex_pde(const float * datain, float * dataout, int bfw
             }
         }
     }
+
 
     const auto dct_bw = fftwf_plan_r2r_2d(bfh, bfw, data_fft, data_tmp, FFTW_REDFT01, FFTW_REDFT01, FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
     fftwf_execute(dct_bw);
@@ -12809,10 +12819,10 @@ void ImProcFunctions::Lab_Local(
 
 
                     } else {
-                        if (lp.expcomp != 0.f  ) { // ||  lp.laplacexp > 0.1f
-                            if(lp.laplacexp <= 0.1f) {
-                                lp.laplacexp = 0.2f;  //force to use Laplacian wth very small values
-                            }
+                        if (lp.expcomp != 0.f ||  lp.laplacexp > 0.1f ) { // ||  lp.laplacexp > 0.1f
+                         //   if(lp.laplacexp <= 0.1f) {
+                        //        lp.laplacexp = 0.2f;  //force to use Laplacian wth very small values
+                        //    }
                             ImProcFunctions::exlabLocal(lp, bfh, bfw, bfhr, bfwr, bufexporig.get(), bufexpfin.get(), hltonecurveloc, shtonecurveloc, tonecurveloc, hueref, lumaref, chromaref);
                         }
                     }
