@@ -3717,7 +3717,7 @@ void ImProcFunctions::retinex_pde(const float * datain, float * dataout, int bfw
     for (int y = 0; y < bfh ; y++) {
         for (int x = 0; x < bfw; x++) {
             if (std::isnan(data_tmp[y * bfw + x])) {
-                data_tmp[y * bfw + x] = datain[y * bfw + x];
+                data_tmp[y * bfw + x] = 0.f; //datain[y * bfw + x];
             }
         }
     }
